@@ -1,88 +1,62 @@
-# MatchaVPN — macOS
+<div align="center">
 
-Нативный macOS-клиент MatchaVPN (SwiftUI + Network Extension **app-extension** + AmneziaWG).
-Упаковка туннеля — как в iOS-приложении (`packet-tunnel-provider`), поэтому подписывается
-той же автоподписью, что и айфон. Распространяется вне App Store как подписанный Developer ID
-и нотаризованный `.dmg` — чистый VPN-клиент без декоя.
+<img src=".github/logo.png" width="128" alt="MatchaVPN"/>
 
-## Что уже есть
+# Привет, мы [MatchaVPN](https://matchavpn.space) 👋
 
-- Полный UI на SwiftUI (окно 460×720, тёмная taro-палитра, ритуальная кнопка подключения,
-  выбор локации, ввод ключа, настройки, переключение темы).
-- Переносимое ядро, общее с iOS: `SubscriptionStore`, `Keychain`, `AmneziaConfig`, `Theme`.
-- Реальный туннель: `PacketTunnelProvider` (amneziawg-go) как **app-extension**; точку входа
-  даёт `NSExtension` в Info.plist (`NSExtensionPrincipalClass`), ровно как на iOS.
-- Живая метрика трафика: приложение через app-message тянет **реальные** rx/tx-счётчики
-  туннеля (`TrafficMonitor`), спидометр ↓/↑ и спарклайн на главном экране.
-- Иконка приложения (AppIcon) по macOS-сетке.
-- Проект **собирается и линкуется целиком** (WireGuardKit + Go + appex + app).
+### Стабильный VPN-провайдер
 
-Без подписи приложение запускается в превью-режиме — интерфейс живой, но VPN не поднимается.
-С подписью (Team ID) туннель работает.
+<p><i>VPN, который для DPI не выглядит как VPN</i></p>
 
-## Требования
+<a href="https://github.com/Muxa03/MatchaVPN-Desktop/releases/latest"><img src="https://img.shields.io/github/v/release/Muxa03/MatchaVPN-Desktop?style=for-the-badge&label=release&color=86A88E&labelColor=291E24&logo=github&logoColor=white"/></a>
+<a href="https://matchavpn.space"><img src="https://img.shields.io/badge/website-matchavpn.space-86A88E?style=for-the-badge&labelColor=291E24"/></a>
+<a href="https://t.me/help_matcha"><img src="https://img.shields.io/badge/support-@help__matcha-86A88E?style=for-the-badge&labelColor=291E24&logo=telegram&logoColor=white"/></a>
 
-- macOS 13+, Xcode 16+ (проверено на Xcode 26.3).
-- [XcodeGen](https://github.com/yonaskolb/XcodeGen): `brew install xcodegen`
-- Go (для сборки amneziawg-go): `brew install go`
+<br/>
 
-## Сборка
+**Скачать**
 
-```sh
-xcodegen generate           # .xcodeproj из project.yml
-# вписать Team ID в project.yml → settings.base.DEVELOPMENT_TEAM (или задать в Xcode → Signing)
-open MatchaLab.xcodeproj     # схема MatchaLab → Run
-```
+<a href="https://matchavpn.space"><img src="https://img.shields.io/badge/iOS-App_Store-86A88E?style=for-the-badge&logo=apple&logoColor=white&labelColor=291E24"/></a>
+<a href="https://github.com/Muxa03/MatchaVPN-Desktop/releases/latest"><img src="https://img.shields.io/badge/macOS-.dmg-86A88E?style=for-the-badge&logo=apple&logoColor=white&labelColor=291E24"/></a>
+<a href="https://github.com/Muxa03/MatchaVPN-Desktop/releases/latest"><img src="https://img.shields.io/badge/Windows-.exe-86A88E?style=for-the-badge&logo=windows&logoColor=white&labelColor=291E24"/></a>
 
-Проверка сборки без подписи:
+</div>
 
-```sh
-xcodebuild build -scheme MatchaLab -destination 'platform=macOS,arch=arm64' \
-  CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
-```
+---
 
-## Подпись (как на iOS)
+> Доступ к свободному интернету — это базовая потребность, которую у нас пытаются отнять. Мы доработали протокол WireGuard специально под особенности той части сети, которая сейчас блокируется. Пока наш сервис совсем небольшой, но у команды есть море крутых идей — и мы обязательно воплотим их в жизнь благодаря вашей поддержке!
 
-Туннель — обычный app-extension с entitlement `packet-tunnel-provider`, поэтому подпись
-устроена так же, как в iOS-проекте, который уже успешно подписывается:
+> Прямо сейчас в нашем арсенале два действующих и два запасных протокола на случай непредвиденных блокировок. А ещё — серверы в самых стабильных локациях и наши собственные алгоритмы защиты.
 
-1. В портале Apple у **обоих** App ID (`space.matchavpn.mac` и `space.matchavpn.mac.tunnel`)
-   включить способность **Network Extensions**.
-2. В Xcode оставить «Automatically manage signing», выбрать Team → автоподпись выпустит профили.
-3. При первом подключении система один раз спросит «MatchaVPN хочет добавить конфигурации VPN» —
-   как на айфоне. Никакого одобрения расширения в «Конфиденциальности» не требуется.
+> Если у вас появились вопросы или классные идеи, заглядывайте к нам в службу поддержки в Telegram — [@help_matcha](https://t.me/help_matcha). Наш проект полностью бесплатный и открытый. Мы безумно рады, если вдохновляем вас.
 
-## .dmg (для распространения)
+## 🍵 Клиенты
 
-1. Archive → экспорт с сертификатом **Developer ID Application**, Hardened Runtime включён.
-2. Собрать `.dmg` (`create-dmg`), нотаризовать и застейплить:
-   ```sh
-   xcrun notarytool submit MatchaVPN.dmg --keychain-profile "matcha" --wait
-   xcrun stapler staple MatchaVPN.dmg
-   ```
+| Платформа | Технология | Статус |
+| :-- | :-- | :-- |
+| **iOS** | SwiftUI + NetworkExtension | в App Store |
+| **macOS** | SwiftUI + System Extension | `.dmg`, подписан и нотаризован |
+| **Windows** | .NET 8 + Avalonia | `.exe` |
+| **Android** | — | в планах |
 
-## Структура
+Транспорт — **MatchaWG**, обфусцированный WireGuard, устойчивый к DPI/ТСПУ.
 
-```
-App/            приложение (SwiftUI)
-  Views/        экраны + UI-атомы (Components, WhiskShape)
-  Support/      TunnelManager
-  MatchaLab.entitlements
-Shared/         переносимое ядро (Theme, Keychain, AmneziaConfig, Subscription)
-Tunnel/         app-extension туннеля
-  PacketTunnelProvider.swift, Tunnel.entitlements
-project.yml     спецификация XcodeGen
-```
+## Команда
 
-## Безопасность
+| Направление | Контрибьютор |
+| :-- | :-- |
+| iOS | [@Muxa03](https://github.com/Muxa03) |
+| macOS | [@Muxa03](https://github.com/Muxa03) |
+| Windows | [@pers1k1](https://github.com/pers1k1) |
+| Linux | [@pers1k1](https://github.com/pers1k1) |
+| Android | [@Muxa03](https://github.com/Muxa03) |
+| Backend | [@Muxa03](https://github.com/Muxa03) |
 
-- Приложение и расширение — в **App Sandbox** (минимум entitlements: network client/server).
-- Ключ-подписка — единственный секрет — в Keychain (`AfterFirstUnlockThisDeviceOnly`),
-  не в UserDefaults; не в бэкапах, недоступен другим приложениям.
-- Токен уходит на сервер заголовком `X-Token` по HTTPS (не в URL — не оседает в логах).
-- Hardened Runtime включён. Хардкоженных секретов нет (базовый URL публичный).
+<div align="center">
+<br/>
 
-## Статус
+**[matchavpn.space](https://matchavpn.space)** · **[@help_matcha](https://t.me/help_matcha)** · бесплатный и открытый
 
-Каркас порта готов и собирается. Дальше: подпись на устройстве, сборка `.dmg`,
-проверка реального туннеля, публикация рядом с Windows-клиентом.
+<sub>stay green 🍵</sub>
+
+</div>
