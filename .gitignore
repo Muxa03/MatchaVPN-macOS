@@ -1,0 +1,21 @@
+# Проект генерируется из project.yml через XcodeGen — сам .xcodeproj не коммитим
+*.xcodeproj
+
+# Xcode / сборка
+build/
+DerivedData/
+.build/
+.swiftpm/
+*.xcuserstate
+xcuserdata/
+*.moved-aside
+
+# SPM
+Package.resolved
+
+# Артефакты выпуска
+*.dmg
+*.zip
+
+# macOS
+.DS_Store

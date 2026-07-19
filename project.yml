@@ -1,0 +1,83 @@
+name: MatchaLab
+options:
+  bundleIdPrefix: space.matchavpn.mac
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: ""            # ← впишите свой Apple Team ID
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ENABLE_HARDENED_RUNTIME: YES          # обязательно для нотаризации и sysext
+    ENABLE_USER_SCRIPT_SANDBOXING: NO     # Go-сборке нужен доступ к файловой системе
+
+packages:
+  amneziawg-apple:
+    url: https://github.com/amnezia-vpn/amneziawg-apple
+    branch: master
+
+targets:
+  # ── Приложение (SwiftUI, хост системного расширения) ──
+  MatchaLab:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: space.matchavpn.mac
+        PRODUCT_NAME: MatchaVPN
+        CODE_SIGN_ENTITLEMENTS: App/MatchaLab.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_KEY_NSHumanReadableCopyright: ""
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: MatchaVPN
+        CFBundleShortVersionString: "1.0"
+        LSApplicationCategoryType: public.app-category.utilities
+        LSMinimumSystemVersion: "13.0"
+        NSHighResolutionCapable: true
+    dependencies:
+      - target: MatchaLabTunnel
+        embed: true          # встроить sysext в Contents/Library/SystemExtensions
+
+  # ── Системное расширение — провайдер туннеля AmneziaWG (Developer ID → только sysext) ──
+  MatchaLabTunnel:
+    type: com.apple.product-type.system-extension
+    platform: macOS
+    sources:
+      - path: Tunnel
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: space.matchavpn.mac.tunnel
+        PRODUCT_NAME: MatchaLabTunnel
+        CODE_SIGN_ENTITLEMENTS: Tunnel/Tunnel.entitlements
+    info:
+      path: Tunnel/Info.plist
+      properties:
+        CFBundleDisplayName: MatchaVPN Tunnel
+        CFBundleShortVersionString: "1.0"
+        NetworkExtension:
+          NEMachServiceName: $(TeamIdentifierPrefix)space.matchavpn.mac.tunnel
+          NEProviderClasses:
+            com.apple.networkextension.packet-tunnel: $(PRODUCT_MODULE_NAME).PacketTunnelProvider
+    dependencies:
+      - package: amneziawg-apple
+        product: WireGuardKit
+    preBuildScripts:
+      - name: Build AmneziaWG (wireguard-go)
+        basedOnDependencyAnalysis: false
+        script: |
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          set -e
+          GODIR=$(find "${BUILD_DIR%/Build/*}/SourcePackages/checkouts" -type d -path '*/Sources/WireGuardKitGo' 2>/dev/null | head -1)
+          if [ -z "$GODIR" ]; then echo "error: WireGuardKitGo checkout not found" >&2; exit 1; fi
+          echo "Building amneziawg-go in $GODIR"
+          make -C "$GODIR"
