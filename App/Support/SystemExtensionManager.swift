@@ -1,5 +1,6 @@
 import Foundation
 import SystemExtensions
+import AppKit
 import os
 
 /// Активация системного расширения-туннеля на macOS.
@@ -33,6 +34,18 @@ final class SystemExtensionManager: NSObject, ObservableObject {
         let req = OSSystemExtensionRequest.activationRequest(forExtensionWithIdentifier: extID, queue: .main)
         req.delegate = self
         OSSystemExtensionManager.shared.submitRequest(req)
+    }
+
+    /// Открыть панель «Конфиденциальность и безопасность», где ждёт кнопка «Разрешить» —
+    /// пользователю не нужно искать её вручную.
+    func openSecuritySettings() {
+        let candidates = [
+            "x-apple.systempreferences:com.apple.settings.PrivacySecurity",    // Ventura+
+            "x-apple.systempreferences:com.apple.preference.security?Privacy", // старые версии
+        ]
+        for s in candidates {
+            if let u = URL(string: s), NSWorkspace.shared.open(u) { return }
+        }
     }
 }
 

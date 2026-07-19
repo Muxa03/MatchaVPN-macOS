@@ -88,7 +88,14 @@ struct SettingsView: View {
                     .font(.system(size: 11))
                     .foregroundColor(.mCream.opacity(0.55))
                     .fixedSize(horizontal: false, vertical: true)
-                if sysext.state != .active {
+                if sysext.state == .needsApproval {
+                    Button("Открыть «Конфиденциальность и безопасность»") { sysext.openSecuritySettings() }
+                        .buttonStyle(HoverScaleStyle())
+                        .font(.system(size: 13, weight: .heavy, design: .rounded))
+                        .foregroundColor(.mTeal)
+                        .padding(.horizontal, 16).padding(.vertical, 10)
+                        .background(Capsule().fill(Color.mLime))
+                } else if sysext.state != .active {
                     Button("Активировать расширение") { sysext.activate() }
                         .buttonStyle(HoverScaleStyle())
                         .font(.system(size: 13, weight: .heavy, design: .rounded))

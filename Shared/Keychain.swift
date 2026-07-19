@@ -14,6 +14,9 @@ enum Keychain {
         let data = Data(value.utf8)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
+            // data-protection keychain (как на iOS): доступ тихий, без диалога логин-связки,
+            // элемент привязан к app-id приложения. Подписанное приложение имеет keychain-access-group.
+            kSecUseDataProtectionKeychain as String: true,
             kSecAttrService as String: service,
             kSecAttrAccount as String: key,
         ]
@@ -33,6 +36,9 @@ enum Keychain {
     static func get(_ key: String) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
+            // data-protection keychain (как на iOS): доступ тихий, без диалога логин-связки,
+            // элемент привязан к app-id приложения. Подписанное приложение имеет keychain-access-group.
+            kSecUseDataProtectionKeychain as String: true,
             kSecAttrService as String: service,
             kSecAttrAccount as String: key,
             kSecReturnData as String: true,
@@ -47,6 +53,9 @@ enum Keychain {
     static func remove(_ key: String) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
+            // data-protection keychain (как на iOS): доступ тихий, без диалога логин-связки,
+            // элемент привязан к app-id приложения. Подписанное приложение имеет keychain-access-group.
+            kSecUseDataProtectionKeychain as String: true,
             kSecAttrService as String: service,
             kSecAttrAccount as String: key,
         ]

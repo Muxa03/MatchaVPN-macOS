@@ -5,6 +5,7 @@ struct ConnectView: View {
     @ObservedObject private var theme = ThemeManager.shared
     @StateObject private var tunnel = TunnelManager()
     @StateObject private var traffic = TrafficMonitor()
+    @ObservedObject private var sysext = SystemExtensionManager.shared
 
     @State private var showServers = false
     @State private var showSettings = false
@@ -20,7 +21,11 @@ struct ConnectView: View {
             hero
             serverCard
             trafficCard
-            if let err = tunnel.lastError { banner(err) }
+            if sysext.state == .needsApproval || sysext.state == .installing {
+                approvalBanner
+            } else if let err = tunnel.lastError {
+                banner(err)
+            }
             Spacer(minLength: 0)
             footer
         }
@@ -47,7 +52,7 @@ struct ConnectView: View {
             VStack(alignment: .leading, spacing: 1) {
                 (Text("MAT").foregroundColor(.mCream) + Text("CHA").foregroundColor(.mLime))
                     .font(.system(size: 24, weight: .black, design: .rounded))
-                Text("macos 1.0")
+                Text("macos 1.0.1")
                     .font(.mono(9)).tracking(2)
                     .foregroundColor(.mCream.opacity(0.5))
             }
@@ -186,6 +191,34 @@ struct ConnectView: View {
                 .foregroundColor(.mCream)
                 .lineLimit(1).minimumScaleFactor(0.6)
         }
+    }
+
+    // MARK: - Баннер одобрения системного расширения
+    private var approvalBanner: some View {
+        VStack(alignment: .leading, spacing: 11) {
+            HStack(alignment: .top, spacing: 10) {
+                Circle().fill(Color.mLime).frame(width: 7, height: 7).padding(.top, 5)
+                Text(sysext.state == .installing
+                     ? "Устанавливаю защиту…"
+                     : "Последний шаг: откройте настройки и нажмите «Разрешить» рядом с MatchaVPN.")
+                    .font(.system(size: 12.5, weight: .semibold))
+                    .foregroundColor(.mCream)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if sysext.state == .needsApproval {
+                Button { sysext.openSecuritySettings() } label: {
+                    Text("Открыть настройки безопасности")
+                        .font(.system(size: 12.5, weight: .heavy, design: .rounded))
+                        .foregroundColor(.mTeal)
+                        .padding(.horizontal, 15).padding(.vertical, 9)
+                        .background(Capsule().fill(Color.mLime))
+                }
+                .buttonStyle(HoverScaleStyle())
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.mTaro))
     }
 
     // MARK: - Баннер ошибки / подсказки
