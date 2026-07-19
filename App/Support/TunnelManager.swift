@@ -89,17 +89,21 @@ final class TunnelManager: ObservableObject {
         }
     }
 
+    /// Системное расширение загружается только из /Applications — иначе активация падает.
+    var isInApplications: Bool { Bundle.main.bundlePath.hasPrefix("/Applications/") }
+
     func start(config: String, excludedRoutes: [String]) async {
-        // На macOS туннель поднимает системное расширение — оно должно быть активно.
+        guard isInApplications else {
+            lastError = "Переместите MatchaVPN в папку «Программы» и запустите оттуда — из других мест системное расширение не запускается."
+            return
+        }
+        // Одобрение расширения асинхронно: активируем и выходим, экран покажет статус по se.state.
         let se = SystemExtensionManager.shared
         if se.state != .active {
             se.activate()
-            if case .active = se.state {} else {
-                lastError = "Разрешите системное расширение MatchaVPN в «Системные настройки → Конфиденциальность и безопасность», затем нажмите СТАРТ ещё раз."
-                return
-            }
+            return
         }
-
+        lastError = nil
         do {
             let mgr = manager ?? NETunnelProviderManager()
             let split = !excludedRoutes.isEmpty

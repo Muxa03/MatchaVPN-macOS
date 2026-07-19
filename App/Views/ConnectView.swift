@@ -11,6 +11,7 @@ struct ConnectView: View {
     @State private var showSettings = false
     @State private var connectedSince: Date?
     @State private var gearHover = false
+    @State private var pendingConnect = false   // достартовать туннель после одобрения расширения
 
     private var isConnected: Bool { tunnel.isActive }
 
@@ -21,8 +22,12 @@ struct ConnectView: View {
             hero
             serverCard
             trafficCard
-            if sysext.state == .needsApproval || sysext.state == .installing {
+            if !tunnel.isInApplications {
+                banner("Переместите MatchaVPN в «Программы» (перетащите в окне установки) и запустите оттуда — иначе защита не включится.")
+            } else if sysext.state == .installing || sysext.state == .needsApproval {
                 approvalBanner
+            } else if let e = sysextFailure {
+                banner("Не удалось включить защиту: \(e)")
             } else if let err = tunnel.lastError {
                 banner(err)
             }
@@ -44,6 +49,15 @@ struct ConnectView: View {
             if on { beginSession() } else { connectedSince = nil }
         }
         .onChange(of: sub.selectedServerID) { _ in reconnectIfActive() }
+        .onChange(of: sysext.state) { st in
+            // расширение только что одобрили — доводим включение до конца автоматически
+            if st == .active && pendingConnect { pendingConnect = false; onPower() }
+        }
+    }
+
+    private var sysextFailure: String? {
+        if case .failed(let e) = sysext.state { return e }
+        return nil
     }
 
     // MARK: - Верхняя панель
@@ -52,7 +66,7 @@ struct ConnectView: View {
             VStack(alignment: .leading, spacing: 1) {
                 (Text("MAT").foregroundColor(.mCream) + Text("CHA").foregroundColor(.mLime))
                     .font(.system(size: 24, weight: .black, design: .rounded))
-                Text("macos 1.0.1")
+                Text("macos 1.0.2")
                     .font(.mono(9)).tracking(2)
                     .foregroundColor(.mCream.opacity(0.5))
             }
@@ -247,6 +261,11 @@ struct ConnectView: View {
         if tunnel.isActive {
             tunnel.toggle(config: nil, excludedRoutes: [])
             return
+        }
+        // Если нужно сперва активировать системное расширение — запомним намерение,
+        // чтобы после одобрения включиться автоматически (см. onChange sysext.state).
+        if !tunnel.usePreview, tunnel.isInApplications, SystemExtensionManager.shared.state != .active {
+            pendingConnect = true
         }
         Task {
             let cfg = tunnel.usePreview ? nil : await sub.resolveSelected()

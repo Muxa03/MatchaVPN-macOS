@@ -40,8 +40,9 @@ final class SystemExtensionManager: NSObject, ObservableObject {
     /// пользователю не нужно искать её вручную.
     func openSecuritySettings() {
         let candidates = [
-            "x-apple.systempreferences:com.apple.settings.PrivacySecurity",    // Ventura+
-            "x-apple.systempreferences:com.apple.preference.security?Privacy", // старые версии
+            "x-apple.systempreferences:com.apple.LoginItems-Settings.extension", // macOS 15+ «Элементы входа и расширения»
+            "x-apple.systempreferences:com.apple.settings.PrivacySecurity",      // Ventura/Sonoma
+            "x-apple.systempreferences:com.apple.preference.security?Privacy",   // старые версии
         ]
         for s in candidates {
             if let u = URL(string: s), NSWorkspace.shared.open(u) { return }
