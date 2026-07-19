@@ -66,7 +66,7 @@ struct ConnectView: View {
             VStack(alignment: .leading, spacing: 1) {
                 (Text("MAT").foregroundColor(.mCream) + Text("CHA").foregroundColor(.mLime))
                     .font(.system(size: 24, weight: .black, design: .rounded))
-                Text("macos 1.0.2")
+                Text("macos 1.0.3")
                     .font(.mono(9)).tracking(2)
                     .foregroundColor(.mCream.opacity(0.5))
             }
