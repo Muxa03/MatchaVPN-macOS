@@ -1,6 +1,10 @@
 # Проект генерируется из project.yml через XcodeGen — сам .xcodeproj не коммитим
 *.xcodeproj
 
+# Info.plist генерируются XcodeGen из project.yml (info.properties) — не храним
+App/Info.plist
+Tunnel/Info.plist
+
 # Xcode / сборка
 build/
 DerivedData/
